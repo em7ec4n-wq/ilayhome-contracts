@@ -29,6 +29,9 @@ export default function ContractContent({ contract, influencerInfo }: ContractCo
           Barter (Takas) Sözleşmesi
         </h1>
         <p className="text-xs text-gray-500 mt-1">İlay Home (İlay Züccaciye) & İçerik Üretici Barter İş Birliği Anlaşması</p>
+        <p className="text-xs font-semibold text-brand-800 bg-brand-50 inline-block px-3 py-1 rounded-full border border-brand-200/60 mt-2">
+          📅 Düzenleme Tarihi: {new Date().toLocaleDateString('tr-TR')}
+        </p>
       </div>
 
       {/* 1. Taraflar */}

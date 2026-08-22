@@ -435,7 +435,14 @@ export default function AdminDashboard() {
                 {deletingId === selectedContract.id ? "Siliniyor..." : "🗑️ Sözleşmeyi Sil"}
               </button>
 
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
+                <button 
+                  onClick={() => window.print()}
+                  className="btn-secondary text-xs sm:text-sm py-2 px-3 font-semibold rounded-xl"
+                  title="Sözleşmeyi ve imzayı PDF olarak kaydet veya yazdır"
+                >
+                  🖨️ Yazdır / PDF İndir
+                </button>
                 <button 
                   onClick={() => copyLink(selectedContract.id)}
                   className="btn-secondary text-xs sm:text-sm py-2 px-3 font-semibold rounded-xl"

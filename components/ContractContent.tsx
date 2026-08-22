@@ -8,6 +8,8 @@ export interface InfluencerFormData {
   phone?: string;
   email?: string;
   address?: string;
+  selectedProduct?: string;
+  productValue?: number;
 }
 
 interface ContractContentProps {
@@ -17,6 +19,8 @@ interface ContractContentProps {
 
 export default function ContractContent({ contract, influencerInfo }: ContractContentProps) {
   const currentInfluencerName = influencerInfo?.fullName || contract.influencer_name;
+  const currentProductDetail = influencerInfo?.selectedProduct || contract.product_detail;
+  const currentProductValue = influencerInfo?.productValue || contract.product_value;
 
   return (
     <div className="card p-6 md:p-10 space-y-6 text-sm text-gray-800 bg-white border border-gray-200 shadow-sm rounded-2xl">
@@ -66,8 +70,8 @@ export default function ContractContent({ contract, influencerInfo }: ContractCo
         <h2 className="text-base font-bold text-gray-900">2. Barter Kapsamındaki Ürün</h2>
         <p className="text-gray-700">Marka, influencer'a aşağıda detayları belirtilen ücretsiz ürünü sağlayacaktır:</p>
         <div className="bg-gray-50 p-3 rounded-xl border border-gray-100 space-y-1.5 text-xs sm:text-sm">
-          <p><span className="text-gray-500 font-medium">Ürün Detayı:</span> <strong>{contract.product_detail}</strong></p>
-          <p><span className="text-gray-500 font-medium">Ürün Tahmini Perakende Değeri:</span> <strong>{contract.product_value} TL</strong></p>
+          <p><span className="text-gray-500 font-medium">Ürün Detayı:</span> <strong>{currentProductDetail}</strong></p>
+          <p><span className="text-gray-500 font-medium">Ürün Tahmini Perakende Değeri:</span> <strong>{currentProductValue} TL</strong></p>
         </div>
       </section>
 
@@ -105,7 +109,7 @@ export default function ContractContent({ contract, influencerInfo }: ContractCo
       <section className="space-y-2">
         <h2 className="text-base font-bold text-gray-900">6. Gecikme ve Yaptırımlar</h2>
         <p className="text-gray-700 leading-relaxed">
-          Influencer, içerik tesliminde gecikme yaşaması veya belirlenen 7 iş günlük azami süre içinde videoyu teslim etmemesi halinde marka, gönderilen ürünün perakende satış bedelini ({contract.product_value} TL) influencer'dan nakden talep ve tahsil etme hakkına sahiptir.
+          Influencer, içerik tesliminde gecikme yaşaması veya belirlenen 7 iş günlük azami süre içinde videoyu teslim etmemesi halinde marka, gönderilen ürünün perakende satış bedelini ({currentProductValue} TL) influencer'dan nakden talep ve tahsil etme hakkına sahiptir.
         </p>
       </section>
 

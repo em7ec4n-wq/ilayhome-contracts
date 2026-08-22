@@ -12,6 +12,12 @@ const SignaturePad = dynamic(() => import('@/components/SignaturePad'), {
   loading: () => <div className="h-48 bg-gray-100 animate-pulse rounded-md flex items-center justify-center text-gray-400">İmza alanı yükleniyor...</div>
 });
 
+const DEFAULT_PRODUCT_OPTIONS = [
+  { id: 'cift_kisilik', name: 'Çift Kişilik Uyku Seti', value: 2450, icon: '🛏️', desc: 'Lüks Pamuk Çift Kişilik Nevresim & Uyku Seti' },
+  { id: 'tek_kisilik', name: 'Tek Kişilik Uyku Seti', value: 1850, icon: '🛏️', desc: 'Lüks Pamuk Tek Kişilik Nevresim & Uyku Seti' },
+  { id: 'klimati_yastik', name: 'Klimalı Yastık (2 Adet)', value: 1250, icon: '❄️', desc: 'Özel Ortopedik Klimalı Soğutucu Etkili Yastık' },
+];
+
 export default function ContractPage() {
   const params = useParams();
   const router = useRouter();
@@ -20,7 +26,7 @@ export default function ContractPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   
-  // Step state (1: Information Form, 2: Contract Review & Sign)
+  // Step state (1: Information Form & Product Selection, 2: Contract Review & Sign)
   const [step, setStep] = useState<1 | 2>(1);
 
   // Form State
@@ -30,6 +36,8 @@ export default function ContractPage() {
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [address, setAddress] = useState('');
+  const [selectedProduct, setSelectedProduct] = useState('Çift Kişilik Uyku Seti');
+  const [productValue, setProductValue] = useState(2450);
   const [signatureData, setSignatureData] = useState<string | null>(null);
   const [isAccepted, setIsAccepted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -46,8 +54,18 @@ export default function ContractPage() {
         const data = await res.json();
         setContract(data);
         if (data.influencer_name && !fullName) {
-          // If name has @username pattern, extract
           setFullName(data.influencer_name);
+        }
+        if (data.product_detail) {
+          // If match in options, select it, otherwise set as custom
+          const found = DEFAULT_PRODUCT_OPTIONS.find(p => p.name.toLowerCase() === data.product_detail.toLowerCase());
+          if (found) {
+            setSelectedProduct(found.name);
+            setProductValue(found.value);
+          } else {
+            setSelectedProduct(data.product_detail);
+            setProductValue(data.product_value || 2450);
+          }
         }
       } catch (err: any) {
         setError(err.message);
@@ -59,12 +77,18 @@ export default function ContractPage() {
     fetchContract();
   }, [params?.id]);
 
+  const handleProductChange = (prodName: string, prodVal: number) => {
+    setSelectedProduct(prodName);
+    setProductValue(prodVal);
+  };
+
   const isStep1Valid = fullName.trim().length > 0 && 
     instagramUsername.trim().length > 0 && 
     tcNo.replace(/\D/g, '').length === 11 && 
     phone.trim().length > 0 && 
     email.trim().length > 0 && 
-    address.trim().length > 0;
+    address.trim().length > 0 &&
+    selectedProduct.trim().length > 0;
 
   const handleGoToStep2 = (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,6 +110,8 @@ export default function ContractPage() {
           contract_id: contract.id,
           full_name: fullName,
           instagram_username: instagramUsername,
+          selected_product: selectedProduct,
+          product_value: productValue,
           tc_no: tcNo,
           phone,
           email,
@@ -157,7 +183,7 @@ export default function ContractPage() {
         <div className="bg-white p-3 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between text-xs sm:text-sm font-medium">
           <div className={`flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all ${step === 1 ? 'bg-brand-600 text-white shadow-sm' : 'text-gray-500 bg-gray-50'}`}>
             <span className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${step === 1 ? 'bg-white text-brand-700' : 'bg-gray-200 text-gray-600'}`}>1</span>
-            <span>Bilgileriniz</span>
+            <span>Ürün & Bilgileriniz</span>
           </div>
 
           <div className="h-0.5 w-8 bg-gray-200"></div>
@@ -168,120 +194,160 @@ export default function ContractPage() {
           </div>
         </div>
 
-        {/* STEP 1: INFLUENCER INFORMATION FORM */}
+        {/* STEP 1: INFLUENCER INFORMATION & PRODUCT SELECTION FORM */}
         {step === 1 && (
           <div className="card p-6 md:p-8 space-y-6 bg-white shadow-sm border border-gray-100">
             <div className="border-b border-gray-100 pb-4">
               <h2 className="text-lg font-bold text-gray-900">
-                👤 İçerik Üretici Bilgileri
+                👤 İçerik Üretici Bilgileri & Ürün Tercihi
               </h2>
               <p className="text-xs text-gray-500 mt-1">
-                Sözleşmenizin ve ürün kargo gönderiminizin hazırlanması için lütfen bilgilerinizi eksiksiz doldurunuz.
+                Lütfen talep ettiğiniz barter ürününü seçiniz ve kargo bilgilerinizi eksiksiz doldurunuz.
               </p>
             </div>
 
-            {/* Product Summary Box */}
-            <div className="bg-amber-50/70 border border-amber-200 rounded-xl p-4 text-xs sm:text-sm space-y-1">
-              <p className="font-bold text-amber-900">📦 Gönderilecek Barter Ürünü:</p>
-              <p className="text-amber-950"><strong>{contract.product_detail}</strong> ({contract.product_value} TL)</p>
-            </div>
-
-            <form className="space-y-4" onSubmit={handleGoToStep2}>
-              {/* Ad Soyad */}
-              <div>
-                <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1">
-                  Adınız ve Soyadınız <span className="text-red-500">*</span>
+            <form className="space-y-5" onSubmit={handleGoToStep2}>
+              {/* Product Selection Options */}
+              <div className="space-y-2.5">
+                <label className="block text-xs sm:text-sm font-bold text-gray-800">
+                  📦 Gönderilecek Barter Ürününü Seçiniz: <span className="text-red-500">*</span>
                 </label>
-                <input 
-                  type="text" 
-                  required 
-                  value={fullName}
-                  onChange={e => setFullName(e.target.value)}
-                  className="input-field w-full" 
-                  placeholder="Kimlikte yazan tam adınız"
-                />
-              </div>
-
-              {/* Instagram Kullanıcı Adı */}
-              <div>
-                <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1">
-                  Instagram Kullanıcı Adınız <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <span className="absolute left-4 top-3.5 text-gray-400 font-bold">@</span>
-                  <input 
-                    type="text" 
-                    required 
-                    value={instagramUsername.replace(/^@/, '')}
-                    onChange={e => setInstagramUsername(e.target.value.replace(/^@/, ''))}
-                    className="input-field w-full pl-9" 
-                    placeholder="kullaniciadiniz"
-                  />
+                
+                <div className="grid grid-cols-1 gap-2.5">
+                  {DEFAULT_PRODUCT_OPTIONS.map((prod) => {
+                    const isSelected = selectedProduct === prod.name;
+                    return (
+                      <label 
+                        key={prod.id}
+                        onClick={() => handleProductChange(prod.name, prod.value)}
+                        className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all flex items-center justify-between ${
+                          isSelected 
+                            ? 'border-brand-500 bg-brand-50/50 shadow-sm' 
+                            : 'border-gray-200 hover:border-gray-300 bg-white'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <input 
+                            type="radio" 
+                            name="barter_product" 
+                            checked={isSelected}
+                            onChange={() => handleProductChange(prod.name, prod.value)}
+                            className="w-4 h-4 text-brand-600 border-gray-300 focus:ring-brand-500"
+                          />
+                          <div>
+                            <p className="font-bold text-gray-900 text-sm flex items-center gap-1.5">
+                              <span>{prod.icon}</span>
+                              <span>{prod.name}</span>
+                            </p>
+                            <p className="text-xs text-gray-500">{prod.desc}</p>
+                          </div>
+                        </div>
+                        <span className="text-xs font-bold text-brand-800 bg-brand-100/70 px-2.5 py-1 rounded-lg shrink-0">
+                          {prod.value} TL
+                        </span>
+                      </label>
+                    );
+                  })}
                 </div>
               </div>
 
-              {/* TC Kimlik No */}
-              <div>
-                <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1">
-                  T.C. Kimlik Numarası <span className="text-red-500">*</span>
-                </label>
-                <input 
-                  type="text" 
-                  required 
-                  maxLength={11}
-                  value={tcNo}
-                  onChange={e => setTcNo(e.target.value.replace(/\D/g, ''))}
-                  className="input-field w-full" 
-                  placeholder="11 haneli T.C. Kimlik No (Sözleşme geçerliliği için)"
-                />
-                {tcNo.length > 0 && tcNo.length !== 11 && (
-                  <p className="text-xs text-amber-600 mt-1">11 haneli olmalıdır ({tcNo.length}/11)</p>
-                )}
-              </div>
+              <div className="border-t border-gray-100 pt-4 space-y-4">
+                {/* Ad Soyad */}
+                <div>
+                  <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1">
+                    Adınız ve Soyadınız <span className="text-red-500">*</span>
+                  </label>
+                  <input 
+                    type="text" 
+                    required 
+                    value={fullName}
+                    onChange={e => setFullName(e.target.value)}
+                    className="input-field w-full" 
+                    placeholder="Kimlikte yazan tam adınız"
+                  />
+                </div>
 
-              {/* Telefon */}
-              <div>
-                <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1">
-                  Telefon Numarası <span className="text-red-500">*</span>
-                </label>
-                <input 
-                  type="tel" 
-                  required 
-                  value={phone}
-                  onChange={e => setPhone(e.target.value)}
-                  className="input-field w-full" 
-                  placeholder="05XX XXX XX XX"
-                />
-              </div>
+                {/* Instagram Kullanıcı Adı */}
+                <div>
+                  <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1">
+                    Instagram Kullanıcı Adınız <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-3.5 text-gray-400 font-bold">@</span>
+                    <input 
+                      type="text" 
+                      required 
+                      value={instagramUsername.replace(/^@/, '')}
+                      onChange={e => setInstagramUsername(e.target.value.replace(/^@/, ''))}
+                      className="input-field w-full pl-9" 
+                      placeholder="kullaniciadiniz"
+                    />
+                  </div>
+                </div>
 
-              {/* E-posta */}
-              <div>
-                <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1">
-                  E-posta Adresi <span className="text-red-500">*</span>
-                </label>
-                <input 
-                  type="email" 
-                  required 
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  className="input-field w-full" 
-                  placeholder="ornek@gmail.com"
-                />
-              </div>
+                {/* TC Kimlik No */}
+                <div>
+                  <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1">
+                    T.C. Kimlik Numarası <span className="text-red-500">*</span>
+                  </label>
+                  <input 
+                    type="text" 
+                    required 
+                    maxLength={11}
+                    value={tcNo}
+                    onChange={e => setTcNo(e.target.value.replace(/\D/g, ''))}
+                    className="input-field w-full" 
+                    placeholder="11 haneli T.C. Kimlik No (Sözleşme geçerliliği için)"
+                  />
+                  {tcNo.length > 0 && tcNo.length !== 11 && (
+                    <p className="text-xs text-amber-600 mt-1">11 haneli olmalıdır ({tcNo.length}/11)</p>
+                  )}
+                </div>
 
-              {/* Kargo Açık Adresi */}
-              <div>
-                <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1">
-                  Kargo / Teslimat Açık Adresi <span className="text-red-500">*</span>
-                </label>
-                <textarea 
-                  required 
-                  rows={3}
-                  value={address}
-                  onChange={e => setAddress(e.target.value)}
-                  className="input-field w-full resize-none" 
-                  placeholder="Ürünün kargolanacağı tam adres (İlçe, İl ve Posta Kodu dahil)"
-                />
+                {/* Telefon */}
+                <div>
+                  <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1">
+                    Telefon Numarası <span className="text-red-500">*</span>
+                  </label>
+                  <input 
+                    type="tel" 
+                    required 
+                    value={phone}
+                    onChange={e => setPhone(e.target.value)}
+                    className="input-field w-full" 
+                    placeholder="05XX XXX XX XX"
+                  />
+                </div>
+
+                {/* E-posta */}
+                <div>
+                  <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1">
+                    E-posta Adresi <span className="text-red-500">*</span>
+                  </label>
+                  <input 
+                    type="email" 
+                    required 
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    className="input-field w-full" 
+                    placeholder="ornek@gmail.com"
+                  />
+                </div>
+
+                {/* Kargo Açık Adresi */}
+                <div>
+                  <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1">
+                    Kargo / Teslimat Açık Adresi <span className="text-red-500">*</span>
+                  </label>
+                  <textarea 
+                    required 
+                    rows={3}
+                    value={address}
+                    onChange={e => setAddress(e.target.value)}
+                    className="input-field w-full resize-none" 
+                    placeholder="Ürünün kargolanacağı tam adres (İlçe, İl ve Posta Kodu dahil)"
+                  />
+                </div>
               </div>
 
               <div className="pt-2">
@@ -298,7 +364,7 @@ export default function ContractPage() {
           </div>
         )}
 
-        {/* STEP 2: CONTRACT VIEW WITH INFLUENCER'S FILLED INFO + SIGNATURE PAD */}
+        {/* STEP 2: CONTRACT VIEW WITH INFLUENCER'S FILLED INFO & SELECTED PRODUCT + SIGNATURE PAD */}
         {step === 2 && (
           <div className="space-y-6">
             {/* Back Button */}
@@ -309,14 +375,14 @@ export default function ContractPage() {
                 className="text-xs sm:text-sm font-semibold text-brand-700 hover:text-brand-800 flex items-center gap-1.5 bg-brand-50 px-3 py-2 rounded-xl border border-brand-200"
               >
                 <span>←</span>
-                <span>Bilgilerimi Düzenle</span>
+                <span>Bilgilerimi & Ürünü Düzenle</span>
               </button>
               <span className="text-xs text-green-700 font-semibold bg-green-50 px-2.5 py-1 rounded-full border border-green-200">
-                ✓ Bilgileriniz Sözleşmeye İşlendi
+                ✓ {selectedProduct} Seçildi
               </span>
             </div>
 
-            {/* Render Contract with Filled Influencer Information */}
+            {/* Render Contract with Filled Influencer Information and Selected Product */}
             <ContractContent 
               contract={contract} 
               influencerInfo={{
@@ -325,7 +391,9 @@ export default function ContractPage() {
                 tcNo,
                 phone,
                 email,
-                address
+                address,
+                selectedProduct,
+                productValue
               }}
             />
 
@@ -361,7 +429,7 @@ export default function ContractPage() {
                     className="mt-1 w-5 h-5 text-brand-600 border-gray-300 rounded focus:ring-brand-500 cursor-pointer"
                   />
                   <label htmlFor="accept" className="text-xs sm:text-sm text-gray-700 cursor-pointer leading-relaxed">
-                    İşbu <strong>Barter (Takas) Sözleşmesi</strong>'nde yer alan tüm maddeleri, teslimat şartlarını ve Kumluca Mahkemeleri yetki hükmünü okudum, anladım ve kabul ediyorum.
+                    İşbu <strong>Barter (Takas) Sözleşmesi</strong>'nde yer alan tüm maddeleri, seçtiğim ({selectedProduct}) ürün şartlarını ve Kumluca Mahkemeleri yetki hükmünü okudum, anladım ve kabul ediyorum.
                   </label>
                 </div>
 

@@ -21,6 +21,8 @@ export default function AdminDashboard() {
     fetchContracts(pwd);
   }, []);
 
+  const [dbError, setDbError] = useState("");
+
   const fetchContracts = async (pwd: string) => {
     try {
       const res = await fetch("/api/contracts", {
@@ -30,13 +32,18 @@ export default function AdminDashboard() {
       });
       if (res.ok) {
         const data = await res.json();
-        setContracts(data);
+        setContracts(Array.isArray(data) ? data : []);
+        setDbError("");
       } else if (res.status === 401) {
         sessionStorage.removeItem("admin_pwd");
         router.push("/");
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        setDbError(errData.error || "Veritabanı bağlantısı bekleniyor");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching contracts:", error);
+      setDbError("Sunucu bağlantı hatası");
     } finally {
       setLoading(false);
     }
@@ -90,6 +97,12 @@ export default function AdminDashboard() {
       </header>
 
       <main className="max-w-4xl mx-auto px-4">
+        {dbError && (
+          <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-xl text-amber-800 text-sm">
+            <p className="font-semibold mb-1">ℹ️ Veritabanı Bağlantısı:</p>
+            <p>Sözleşmelerin kaydedilmesi ve listelenmesi için Vercel panelinden Supabase veritabanınızı bağlayınız.</p>
+          </div>
+        )}
         <div className="grid grid-cols-3 gap-4 mb-8">
           <div className="card p-4 text-center border-t-4 border-yellow-400">
             <p className="text-xs sm:text-sm text-gray-500 mb-1">Bekleyen</p>

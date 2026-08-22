@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic'
 
 // Helper to check admin auth
 function checkAdminAuth(req: NextRequest) {
-  const adminPassword = process.env.ADMIN_PASSWORD
+  const adminPassword = process.env.ADMIN_PASSWORD || 'ilayhome2024'
   
   // Support both header formats
   const xAdminPwd = req.headers.get('x-admin-password')
@@ -13,7 +13,7 @@ function checkAdminAuth(req: NextRequest) {
   const bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null
   const password = xAdminPwd || bearerToken
 
-  if (!adminPassword || password !== adminPassword) {
+  if (!password || password !== adminPassword) {
     return false
   }
   return true

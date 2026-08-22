@@ -6,17 +6,42 @@ import { useRouter } from "next/navigation";
 export default function AdminLoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const handleLogin = (e: FormEvent) => {
+  const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
     if (!password.trim()) {
       setError("Lütfen şifre giriniz.");
       return;
     }
     
-    sessionStorage.setItem("admin_pwd", password);
-    router.push("/admin");
+    setLoading(true);
+    setError("");
+
+    try {
+      // Test the password against API
+      const res = await fetch("/api/contracts", {
+        headers: {
+          "Authorization": `Bearer ${password}`
+        }
+      });
+
+      if (res.status === 401) {
+        setError("Hatalı şifre! Lütfen tekrar deneyiniz.");
+        setLoading(false);
+        return;
+      }
+
+      sessionStorage.setItem("admin_pwd", password);
+      router.push("/admin");
+    } catch (err) {
+      // If network error, still allow navigation
+      sessionStorage.setItem("admin_pwd", password);
+      router.push("/admin");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

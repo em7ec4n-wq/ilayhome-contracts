@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ContractWithSignature } from "@/lib/types";
+import ContractContent from "@/components/ContractContent";
 
 export default function AdminDashboard() {
   const [contracts, setContracts] = useState<ContractWithSignature[]>([]);
@@ -11,6 +12,7 @@ export default function AdminDashboard() {
   const [filter, setFilter] = useState("all");
   const [toast, setToast] = useState("");
   const [selectedContract, setSelectedContract] = useState<ContractWithSignature | null>(null);
+  const [modalTab, setModalTab] = useState<'contract' | 'summary'>('contract');
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const router = useRouter();
 
@@ -63,6 +65,13 @@ export default function AdminDashboard() {
     setTimeout(() => setToast(""), 3000);
   };
 
+  const copyDirectLink = () => {
+    const url = `${window.location.origin}/sozlesme`;
+    navigator.clipboard.writeText(url);
+    setToast("Direkt sözleşme linki (/sozlesme) kopyalandı!");
+    setTimeout(() => setToast(""), 3000);
+  };
+
   const handleDelete = async (id: string) => {
     if (!confirm("Bu sözleşmeyi silmek istediğinize emin misiniz?")) return;
     const pwd = sessionStorage.getItem("admin_pwd") || "";
@@ -112,13 +121,20 @@ export default function AdminDashboard() {
       )}
       
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-100 p-4 sticky top-0 z-30">
+      <header className="bg-white shadow-sm border-b border-gray-100 p-4 sticky top-0 z-30 print:hidden">
         <div className="max-w-5xl mx-auto flex justify-between items-center">
           <div>
             <h1 className="text-xl font-extrabold text-brand-600 tracking-tight">İlay Home</h1>
             <p className="text-xs text-gray-500 font-medium">Sözleşme Yönetim Paneli</p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <button
+              onClick={copyDirectLink}
+              className="btn-secondary text-xs sm:text-sm px-3 py-2 font-bold shadow-sm"
+              title="Influencer'a atılacak direkt /sozlesme linkini kopyala"
+            >
+              📋 Genel Link Kopyala
+            </button>
             <Link 
               href="/admin/create"
               className="btn-primary text-xs sm:text-sm px-3.5 py-2 font-bold shadow-sm"
@@ -135,7 +151,7 @@ export default function AdminDashboard() {
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto px-4 pt-6">
+      <main className="max-w-5xl mx-auto px-4 pt-6 print:hidden">
         {dbError && (
           <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-2xl text-amber-800 text-sm">
             <p className="font-semibold mb-1">ℹ️ Durum:</p>
@@ -246,15 +262,18 @@ export default function AdminDashboard() {
                     <button 
                       onClick={() => copyLink(contract.id)}
                       className="btn-secondary text-xs sm:text-sm py-2 px-3 flex-1 sm:flex-none font-semibold rounded-xl"
-                      title="WhatsApp / Paylaşım linkini kopyala"
+                      title="Özel linki kopyala"
                     >
                       🔗 Link
                     </button>
                     <button 
-                      onClick={() => setSelectedContract(contract)}
+                      onClick={() => {
+                        setSelectedContract(contract);
+                        setModalTab('contract');
+                      }}
                       className="btn-primary text-xs sm:text-sm py-2 px-4 flex-1 sm:flex-none font-bold rounded-xl shadow-sm"
                     >
-                      Detayları Gör 👁️
+                      Sözleşmeyi İncele 📄
                     </button>
                   </div>
                 </div>
@@ -276,157 +295,171 @@ export default function AdminDashboard() {
         )}
       </main>
 
-      {/* DETAY MODAL / POPUP */}
+      {/* DETAY & TAM SÖZLEŞME MODALI */}
       {selectedContract && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-gray-200">
-            {/* Modal Header */}
-            <div className="p-5 border-b border-gray-100 flex justify-between items-center sticky top-0 bg-white z-10">
-              <div>
-                <h2 className="text-lg sm:text-xl font-bold text-gray-900">
-                  {selectedContract.signatures?.full_name || selectedContract.influencer_name || 'Sözleşme Detayı'}
-                </h2>
-                <p className="text-xs text-gray-500">ID: {selectedContract.id}</p>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[92vh] flex flex-col shadow-2xl border border-gray-200 overflow-hidden">
+            {/* Modal Top Header */}
+            <div className="p-4 sm:p-5 border-b border-gray-100 flex justify-between items-center bg-white z-10 print:hidden">
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-base sm:text-xl font-bold text-gray-900">
+                    {selectedContract.signatures?.full_name || selectedContract.influencer_name || 'Sözleşme Detayı'}
+                  </h2>
+                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                    selectedContract.status === 'signed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                  }`}>
+                    {selectedContract.status === 'signed' ? '✓ İmzalandı' : '⏳ Bekliyor'}
+                  </span>
+                </div>
+                <p className="text-xs text-gray-400">ID: {selectedContract.id}</p>
               </div>
-              <button 
-                onClick={() => setSelectedContract(null)}
-                className="text-gray-400 hover:text-gray-700 w-8 h-8 rounded-full flex items-center justify-center bg-gray-100 hover:bg-gray-200 font-bold"
-              >
-                ✕
-              </button>
+
+              {/* View Tabs */}
+              <div className="flex items-center gap-2">
+                <div className="bg-gray-100 p-1 rounded-xl flex text-xs font-semibold">
+                  <button
+                    onClick={() => setModalTab('contract')}
+                    className={`px-3 py-1.5 rounded-lg transition-all ${
+                      modalTab === 'contract' ? 'bg-white text-brand-700 shadow-sm font-bold' : 'text-gray-600'
+                    }`}
+                  >
+                    📄 Resmi Sözleşme
+                  </button>
+                  <button
+                    onClick={() => setModalTab('summary')}
+                    className={`px-3 py-1.5 rounded-lg transition-all ${
+                      modalTab === 'summary' ? 'bg-white text-brand-700 shadow-sm font-bold' : 'text-gray-600'
+                    }`}
+                  >
+                    👤 Müşteri Bilgileri
+                  </button>
+                </div>
+
+                <button 
+                  onClick={() => setSelectedContract(null)}
+                  className="text-gray-400 hover:text-gray-700 w-8 h-8 rounded-full flex items-center justify-center bg-gray-100 hover:bg-gray-200 font-bold ml-2"
+                >
+                  ✕
+                </button>
+              </div>
             </div>
 
-            {/* Modal Content */}
-            <div className="p-6 space-y-6 text-xs sm:text-sm">
-              {/* Status Banner */}
-              <div className={`p-4 rounded-xl border flex items-center justify-between ${
-                selectedContract.status === 'signed' 
-                  ? 'bg-green-50 border-green-200 text-green-900'
-                  : 'bg-yellow-50 border-yellow-200 text-yellow-900'
-              }`}>
-                <div className="flex items-center gap-2 font-bold">
-                  <span>{selectedContract.status === 'signed' ? '✓ Onaylanmış Sözleşme' : '⏳ Henüz İmzalanmadı / Bekliyor'}</span>
+            {/* Modal Body */}
+            <div className="p-4 sm:p-6 overflow-y-auto flex-1 space-y-6">
+              {modalTab === 'contract' ? (
+                /* 1. TAB: OFFICIAL FULL CONTRACT WITH REAL INFLUENCER SIGNATURE */
+                <div className="space-y-4">
+                  <ContractContent 
+                    contract={selectedContract}
+                    influencerInfo={{
+                      fullName: selectedContract.signatures?.full_name || selectedContract.influencer_name || '',
+                      instagramUsername: selectedContract.signatures?.instagram_username || '',
+                      tcNo: selectedContract.signatures?.tc_no || '',
+                      phone: selectedContract.signatures?.phone || '',
+                      email: selectedContract.signatures?.email || '',
+                      address: selectedContract.signatures?.address || '',
+                      selectedProduct: selectedContract.product_detail,
+                      productValue: selectedContract.product_value,
+                      signatureData: selectedContract.signatures?.signature_data,
+                      signedAt: selectedContract.signatures?.signed_at,
+                      ipAddress: selectedContract.signatures?.ip_address,
+                    }}
+                  />
                 </div>
-                {selectedContract.signatures?.signed_at && (
-                  <span className="text-xs text-green-700 font-medium">
-                    {new Date(selectedContract.signatures.signed_at).toLocaleString('tr-TR')}
-                  </span>
-                )}
-              </div>
-
-              {/* 1. Influencer / Müşteri Bilgileri */}
-              <div className="space-y-3 bg-gray-50 p-4 rounded-xl border border-gray-100">
-                <h3 className="font-bold text-sm text-brand-900 border-b border-gray-200 pb-1.5 flex items-center gap-1.5">
-                  <span>👤</span> INFLUENCER / MÜŞTERİ BİLGİLERİ
-                </h3>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                  <div>
-                    <span className="text-gray-500 block text-xs">Adı Soyadı:</span>
-                    <strong className="text-gray-900">{selectedContract.signatures?.full_name || selectedContract.influencer_name || '-'}</strong>
+              ) : (
+                /* 2. TAB: QUICK SUMMARY CARD */
+                <div className="space-y-6 text-xs sm:text-sm">
+                  {/* Status Banner */}
+                  <div className={`p-4 rounded-xl border flex items-center justify-between ${
+                    selectedContract.status === 'signed' 
+                      ? 'bg-green-50 border-green-200 text-green-900'
+                      : 'bg-yellow-50 border-yellow-200 text-yellow-900'
+                  }`}>
+                    <div className="flex items-center gap-2 font-bold">
+                      <span>{selectedContract.status === 'signed' ? '✓ Onaylanmış Sözleşme' : '⏳ Henüz İmzalanmadı / Bekliyor'}</span>
+                    </div>
+                    {selectedContract.signatures?.signed_at && (
+                      <span className="text-xs text-green-700 font-medium">
+                        {new Date(selectedContract.signatures.signed_at).toLocaleString('tr-TR')}
+                      </span>
+                    )}
                   </div>
 
-                  <div>
-                    <span className="text-gray-500 block text-xs">Instagram:</span>
-                    <strong className="text-purple-700 font-semibold">
-                      {selectedContract.signatures?.instagram_username ? `@${selectedContract.signatures.instagram_username.replace(/^@/, '')}` : '-'}
-                    </strong>
-                  </div>
+                  {/* Influencer / Müşteri Bilgileri */}
+                  <div className="space-y-3 bg-gray-50 p-4 rounded-xl border border-gray-100">
+                    <h3 className="font-bold text-sm text-brand-900 border-b border-gray-200 pb-1.5 flex items-center gap-1.5">
+                      <span>👤</span> INFLUENCER / MÜŞTERİ BİLGİLERİ
+                    </h3>
 
-                  <div>
-                    <span className="text-gray-500 block text-xs">T.C. Kimlik No:</span>
-                    <strong className="text-gray-900">{selectedContract.signatures?.tc_no || '-'}</strong>
-                  </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                      <div>
+                        <span className="text-gray-500 block text-xs">Adı Soyadı:</span>
+                        <strong className="text-gray-900 text-base">{selectedContract.signatures?.full_name || selectedContract.influencer_name || '-'}</strong>
+                      </div>
 
-                  <div>
-                    <span className="text-gray-500 block text-xs">Telefon Numarası:</span>
-                    <a href={`tel:${selectedContract.signatures?.phone}`} className="text-brand-600 font-bold hover:underline">
-                      {selectedContract.signatures?.phone || '-'}
-                    </a>
-                  </div>
+                      <div>
+                        <span className="text-gray-500 block text-xs">Instagram:</span>
+                        <strong className="text-purple-700 font-semibold text-base">
+                          {selectedContract.signatures?.instagram_username ? `@${selectedContract.signatures.instagram_username.replace(/^@/, '')}` : '-'}
+                        </strong>
+                      </div>
 
-                  <div className="sm:col-span-2">
-                    <span className="text-gray-500 block text-xs">E-posta Adresi:</span>
-                    <a href={`mailto:${selectedContract.signatures?.email}`} className="text-brand-600 hover:underline">
-                      {selectedContract.signatures?.email || '-'}
-                    </a>
-                  </div>
+                      <div>
+                        <span className="text-gray-500 block text-xs">T.C. Kimlik No:</span>
+                        <strong className="text-gray-900">{selectedContract.signatures?.tc_no || '-'}</strong>
+                      </div>
 
-                  <div className="sm:col-span-2">
-                    <span className="text-gray-500 block text-xs">Kargo / Teslimat Açık Adresi:</span>
-                    <div className="p-3 bg-white rounded-lg border border-gray-200 text-gray-800 font-medium mt-1 leading-relaxed">
-                      {selectedContract.signatures?.address || 'Henüz adres girilmedi.'}
+                      <div>
+                        <span className="text-gray-500 block text-xs">Telefon Numarası:</span>
+                        <a href={`tel:${selectedContract.signatures?.phone}`} className="text-brand-600 font-bold hover:underline">
+                          {selectedContract.signatures?.phone || '-'}
+                        </a>
+                      </div>
+
+                      <div className="sm:col-span-2">
+                        <span className="text-gray-500 block text-xs">E-posta Adresi:</span>
+                        <a href={`mailto:${selectedContract.signatures?.email}`} className="text-brand-600 hover:underline">
+                          {selectedContract.signatures?.email || '-'}
+                        </a>
+                      </div>
+
+                      <div className="sm:col-span-2">
+                        <span className="text-gray-500 block text-xs">Kargo / Teslimat Açık Adresi:</span>
+                        <div className="p-3 bg-white rounded-lg border border-gray-200 text-gray-800 font-medium mt-1 leading-relaxed">
+                          {selectedContract.signatures?.address || 'Henüz adres girilmedi.'}
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
 
-              {/* 2. Barter Ürünü & Sözleşme Şartları */}
-              <div className="space-y-3 bg-gray-50 p-4 rounded-xl border border-gray-100">
-                <h3 className="font-bold text-sm text-brand-900 border-b border-gray-200 pb-1.5 flex items-center gap-1.5">
-                  <span>📦</span> BARTER ÜRÜNÜ & ŞARTLAR
-                </h3>
+                  {/* Islak İmza Görseli */}
+                  {selectedContract.signatures?.signature_data && (
+                    <div className="space-y-3 bg-emerald-50/60 p-4 rounded-xl border border-emerald-200">
+                      <h3 className="font-bold text-sm text-emerald-950 border-b border-emerald-200 pb-1.5 flex items-center gap-1.5">
+                        <span>✍️</span> INFLUENCER ISLAK İMZA GÖRSELİ
+                      </h3>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                  <div className="sm:col-span-2">
-                    <span className="text-gray-500 block text-xs">Seçilen Ürün:</span>
-                    <strong className="text-base text-gray-900 font-bold">{selectedContract.product_detail}</strong>
-                  </div>
+                      <div className="bg-white p-3 rounded-xl border border-emerald-200 flex items-center justify-center">
+                        <img 
+                          src={selectedContract.signatures.signature_data} 
+                          alt="Influencer İmzası" 
+                          className="max-h-36 max-w-full object-contain"
+                        />
+                      </div>
 
-                  <div>
-                    <span className="text-gray-500 block text-xs">Platform:</span>
-                    <span className="font-medium text-gray-800">{selectedContract.platform}</span>
-                  </div>
-
-                  <div>
-                    <span className="text-gray-500 block text-xs">İçerik Türü:</span>
-                    <span className="font-medium text-gray-800">{selectedContract.content_type} ({selectedContract.content_count} Adet)</span>
-                  </div>
-
-                  <div>
-                    <span className="text-gray-500 block text-xs">Son Teslim Tarihi:</span>
-                    <span className="font-bold text-red-600">{new Date(selectedContract.delivery_deadline).toLocaleDateString('tr-TR')}</span>
-                  </div>
-
-                  <div>
-                    <span className="text-gray-500 block text-xs">Yetkili Mahkeme:</span>
-                    <span className="font-medium text-gray-800">Antalya Kumluca</span>
-                  </div>
-                </div>
-
-                {selectedContract.notes && (
-                  <div className="pt-2">
-                    <span className="text-gray-500 block text-xs">Özel Notlar:</span>
-                    <p className="text-gray-700 mt-0.5">{selectedContract.notes}</p>
-                  </div>
-                )}
-              </div>
-
-              {/* 3. Islak İmza & Doğrulama Kanıtı */}
-              {selectedContract.signatures?.signature_data && (
-                <div className="space-y-3 bg-emerald-50/60 p-4 rounded-xl border border-emerald-200">
-                  <h3 className="font-bold text-sm text-emerald-950 border-b border-emerald-200 pb-1.5 flex items-center gap-1.5">
-                    <span>✍️</span> INFLUENCER ISLAK İMZA GÖRSELİ
-                  </h3>
-
-                  <div className="bg-white p-3 rounded-xl border border-emerald-200 flex items-center justify-center">
-                    <img 
-                      src={selectedContract.signatures.signature_data} 
-                      alt="Influencer İmzası" 
-                      className="max-h-36 max-w-full object-contain"
-                    />
-                  </div>
-
-                  <div className="flex justify-between text-xs text-emerald-900 pt-1">
-                    <span>İmzalayan: <strong>{selectedContract.signatures.full_name}</strong></span>
-                    <span>IP: <strong>{selectedContract.signatures.ip_address}</strong></span>
-                  </div>
+                      <div className="flex justify-between text-xs text-emerald-900 pt-1">
+                        <span>İmzalayan: <strong>{selectedContract.signatures.full_name}</strong></span>
+                        <span>IP: <strong>{selectedContract.signatures.ip_address}</strong></span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
 
             {/* Modal Footer Actions */}
-            <div className="p-4 border-t border-gray-100 flex flex-wrap gap-2 justify-between items-center bg-gray-50 rounded-b-2xl">
+            <div className="p-4 border-t border-gray-100 flex flex-wrap gap-2 justify-between items-center bg-gray-50 rounded-b-2xl print:hidden">
               <button 
                 onClick={() => handleDelete(selectedContract.id)}
                 disabled={deletingId === selectedContract.id}
@@ -438,7 +471,7 @@ export default function AdminDashboard() {
               <div className="flex flex-wrap gap-2">
                 <button 
                   onClick={() => window.print()}
-                  className="btn-secondary text-xs sm:text-sm py-2 px-3 font-semibold rounded-xl"
+                  className="btn-primary text-xs sm:text-sm py-2 px-4 font-bold rounded-xl shadow-sm bg-gray-900 hover:bg-black text-white"
                   title="Sözleşmeyi ve imzayı PDF olarak kaydet veya yazdır"
                 >
                   🖨️ Yazdır / PDF İndir
@@ -454,7 +487,7 @@ export default function AdminDashboard() {
                   target="_blank"
                   className="btn-primary text-xs sm:text-sm py-2 px-4 font-bold rounded-xl shadow-sm"
                 >
-                  Sözleşme Sayfasına Git ↗
+                  Yeni Sekmede Aç ↗
                 </Link>
               </div>
             </div>

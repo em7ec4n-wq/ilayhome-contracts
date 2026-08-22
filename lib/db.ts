@@ -11,21 +11,7 @@ const DB_FILE_PATH = 'data/db.json';
 
 // In-memory fallback cache
 let memoryDb: DatabaseSchema = {
-  contracts: [
-    {
-      id: 'ornek',
-      influencer_name: 'Örnek Influencer',
-      product_detail: 'Çift Kişilik Uyku Seti',
-      product_value: 2450,
-      content_count: 1,
-      content_type: 'UGC Video',
-      platform: 'Instagram Reels & TikTok',
-      notes: 'Otomatik örnek sözleşme',
-      status: 'pending',
-      delivery_deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      created_at: new Date().toISOString(),
-    }
-  ],
+  contracts: [],
   signatures: []
 };
 
@@ -44,11 +30,6 @@ async function getDb(): Promise<{ data: DatabaseSchema; sha?: string }> {
       cache: 'no-store'
     });
 
-    if (res.status === 404) {
-      // File doesn't exist yet, return initial schema
-      return { data: memoryDb };
-    }
-
     if (!res.ok) {
       return { data: memoryDb };
     }
@@ -64,8 +45,8 @@ async function getDb(): Promise<{ data: DatabaseSchema; sha?: string }> {
   }
 }
 
-// Helper to save db.json to GitHub
-async function saveDb(data: DatabaseSchema, sha?: string): Promise<boolean> {
+// Helper to save db.json to GitHub with automatic sha refresh
+async function saveDb(data: DatabaseSchema): Promise<boolean> {
   memoryDb = data;
 
   if (!GITHUB_TOKEN) {
@@ -73,20 +54,19 @@ async function saveDb(data: DatabaseSchema, sha?: string): Promise<boolean> {
   }
 
   try {
-    // If no sha provided, try to get current sha
-    let currentSha = sha;
-    if (!currentSha) {
-      const check = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${DB_FILE_PATH}`, {
-        headers: {
-          Authorization: `Bearer ${GITHUB_TOKEN}`,
-          Accept: 'application/vnd.github.v3+json',
-        },
-        cache: 'no-store'
-      });
-      if (check.ok) {
-        const checkJson = await check.json();
-        currentSha = checkJson.sha;
-      }
+    // Always fetch latest SHA to prevent 409 conflict
+    let currentSha: string | undefined;
+    const check = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${DB_FILE_PATH}`, {
+      headers: {
+        Authorization: `Bearer ${GITHUB_TOKEN}`,
+        Accept: 'application/vnd.github.v3+json',
+      },
+      cache: 'no-store'
+    });
+    
+    if (check.ok) {
+      const checkJson = await check.json();
+      currentSha = checkJson.sha;
     }
 
     const contentBase64 = Buffer.from(JSON.stringify(data, null, 2), 'utf-8').toString('base64');
@@ -141,31 +121,30 @@ export async function getContracts(): Promise<ContractWithSignature[]> {
 
 export async function getContractById(id: string): Promise<ContractWithSignature | null> {
   const { data } = await getDb();
-  
-  // Check if it's demo/ornek
-  if (id === 'ornek' || id === 'demo') {
+
+  const contract = data.contracts.find(c => c.id === id);
+  const signature = data.signatures.find(s => s.contract_id === id) || null;
+
+  if (contract) {
     return {
-      id: 'ornek',
-      influencer_name: '',
-      product_detail: 'Çift Kişilik Uyku Seti',
-      product_value: 2450,
-      content_count: 1,
-      content_type: 'UGC Video',
-      platform: 'Instagram Reels & TikTok',
-      notes: 'İlay Home Barter İş Birliği Sözleşmesi',
-      status: 'pending',
-      delivery_deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      created_at: new Date().toISOString(),
-      signatures: null
+      ...contract,
+      signatures: signature
     };
   }
 
-  const contract = data.contracts.find(c => c.id === id);
-  if (!contract) return null;
-
-  const signature = data.signatures.find(s => s.contract_id === id) || null;
+  // Fallback for new signing session if not created in admin
   return {
-    ...contract,
+    id: id,
+    influencer_name: '',
+    product_detail: 'Çift Kişilik Uyku Seti',
+    product_value: 2450,
+    content_count: 1,
+    content_type: 'UGC Video',
+    platform: 'Instagram Reels & TikTok',
+    notes: 'İlay Home Barter İş Birliği Sözleşmesi',
+    status: 'pending',
+    delivery_deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    created_at: new Date().toISOString(),
     signatures: signature
   };
 }
@@ -179,7 +158,7 @@ export async function createContract(params: {
   platform?: string;
   notes?: string;
 }): Promise<Contract> {
-  const { data, sha } = await getDb();
+  const { data } = await getDb();
 
   // 7 business days from now
   const date = new Date();
@@ -207,7 +186,7 @@ export async function createContract(params: {
   };
 
   data.contracts.unshift(newContract);
-  await saveDb(data, sha);
+  await saveDb(data);
   return newContract;
 }
 
@@ -223,44 +202,46 @@ export async function signContract(params: {
   address: string;
   signature_data: string;
   ip_address: string;
-}): Promise<{ success: boolean; contract?: Contract }> {
-  // Demo check
-  if (params.contract_id === 'ornek' || params.contract_id === 'demo') {
-    return {
-      success: true,
-      contract: {
-        id: params.contract_id,
-        influencer_name: params.full_name,
-        product_detail: params.selected_product || 'Çift Kişilik Uyku Seti',
-        product_value: params.product_value || 2450,
-        content_count: 1,
-        content_type: 'UGC Video',
-        platform: 'Instagram Reels & TikTok',
-        notes: '',
-        status: 'signed',
-        delivery_deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        created_at: new Date().toISOString(),
-      }
-    };
-  }
+}): Promise<{ success: boolean; contract: Contract; signature: Signature }> {
+  const { data } = await getDb();
+  
+  let contract = data.contracts.find(c => c.id === params.contract_id);
 
-  const { data, sha } = await getDb();
-  const contract = data.contracts.find(c => c.id === params.contract_id);
-
+  // If contract doesn't exist yet (e.g. signed directly from /sozlesme), create it!
   if (!contract) {
-    throw new Error('Sözleşme bulunamadı.');
-  }
+    const date = new Date();
+    let addedDays = 0;
+    while (addedDays < 7) {
+      date.setDate(date.getDate() + 1);
+      if (date.getDay() !== 0 && date.getDay() !== 6) {
+        addedDays++;
+      }
+    }
 
-  // Update contract status and details
-  contract.status = 'signed';
-  if (params.selected_product) {
-    contract.product_detail = params.selected_product;
-  }
-  if (params.full_name) {
+    contract = {
+      id: params.contract_id,
+      influencer_name: params.full_name,
+      product_detail: params.selected_product || 'Çift Kişilik Uyku Seti',
+      product_value: params.product_value || 2450,
+      content_count: 1,
+      content_type: 'UGC Video',
+      platform: 'Instagram Reels & TikTok',
+      notes: `Instagram: @${(params.instagram_username || '').replace(/^@/, '')}`,
+      status: 'signed',
+      delivery_deadline: date.toISOString().split('T')[0],
+      created_at: new Date().toISOString(),
+    };
+    data.contracts.unshift(contract);
+  } else {
+    // Update existing
+    contract.status = 'signed';
     contract.influencer_name = params.full_name;
+    if (params.selected_product) {
+      contract.product_detail = params.selected_product;
+    }
   }
 
-  // Add signature
+  // Create signature record
   const newSignature: Signature = {
     id: 's_' + Math.random().toString(36).substring(2, 9),
     contract_id: params.contract_id,
@@ -275,17 +256,17 @@ export async function signContract(params: {
     ip_address: params.ip_address,
   };
 
-  // Remove previous signature if any
+  // Remove previous signature for this contract if any
   data.signatures = data.signatures.filter(s => s.contract_id !== params.contract_id);
-  data.signatures.push(newSignature);
+  data.signatures.unshift(newSignature);
 
-  await saveDb(data, sha);
-  return { success: true, contract };
+  await saveDb(data);
+  return { success: true, contract, signature: newSignature };
 }
 
 export async function deleteContract(id: string): Promise<boolean> {
-  const { data, sha } = await getDb();
+  const { data } = await getDb();
   data.contracts = data.contracts.filter(c => c.id !== id);
   data.signatures = data.signatures.filter(s => s.contract_id !== id);
-  return await saveDb(data, sha);
+  return await saveDb(data);
 }

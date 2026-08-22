@@ -69,28 +69,8 @@ export default function DirectContractPage() {
     
     setSubmitting(true);
     try {
-      // 1. Create the contract in DB
-      const createRes = await fetch('/api/contracts', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ilayhome2024'
-        },
-        body: JSON.stringify({
-          influencer_name: fullName,
-          product_detail: selectedProduct,
-          product_value: 2450,
-          content_count: 1,
-          content_type: 'UGC Video',
-          platform: 'Instagram Reels & TikTok',
-          notes: `Instagram: @${instagramUsername.replace(/^@/, '')}`
-        })
-      });
+      const contractId = 'c_' + Math.random().toString(36).substring(2, 9) + Date.now().toString(36);
 
-      const createdContract = await createRes.json();
-      const contractId = createdContract.id || ('c_' + Math.random().toString(36).substring(2, 9));
-
-      // 2. Sign the contract
       const signRes = await fetch('/api/sign', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

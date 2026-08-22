@@ -53,9 +53,6 @@ export default function ContractPage() {
         
         const data = await res.json();
         setContract(data);
-        if (data.influencer_name && !fullName) {
-          setFullName(data.influencer_name);
-        }
         if (data.product_detail) {
           const found = DEFAULT_PRODUCT_OPTIONS.find(p => p.name.toLowerCase() === data.product_detail.toLowerCase());
           if (found) {
@@ -262,7 +259,7 @@ export default function ContractPage() {
                     value={fullName}
                     onChange={e => setFullName(e.target.value)}
                     className="input-field w-full" 
-                    placeholder="Kimlikte yazan tam adınız"
+                    placeholder="Adınızı ve soyadınızı giriniz"
                   />
                 </div>
 
@@ -279,7 +276,7 @@ export default function ContractPage() {
                       value={instagramUsername.replace(/^@/, '')}
                       onChange={e => setInstagramUsername(e.target.value.replace(/^@/, ''))}
                       className="input-field w-full pl-9" 
-                      placeholder="kullaniciadiniz"
+                      placeholder="Instagram kullanıcı adınız"
                     />
                   </div>
                 </div>
@@ -296,7 +293,7 @@ export default function ContractPage() {
                     value={tcNo}
                     onChange={e => setTcNo(e.target.value.replace(/\D/g, ''))}
                     className="input-field w-full" 
-                    placeholder="11 haneli T.C. Kimlik No (Sözleşme geçerliliği için)"
+                    placeholder="11 haneli T.C. Kimlik numaranızı giriniz"
                   />
                   {tcNo.length > 0 && tcNo.length !== 11 && (
                     <p className="text-xs text-amber-600 mt-1">11 haneli olmalıdır ({tcNo.length}/11)</p>
@@ -329,7 +326,7 @@ export default function ContractPage() {
                     value={email}
                     onChange={e => setEmail(e.target.value)}
                     className="input-field w-full" 
-                    placeholder="ornek@gmail.com"
+                    placeholder="E-posta adresinizi giriniz (örn: adiniz@gmail.com)"
                   />
                 </div>
 
@@ -344,7 +341,7 @@ export default function ContractPage() {
                     value={address}
                     onChange={e => setAddress(e.target.value)}
                     className="input-field w-full resize-none" 
-                    placeholder="Ürünün kargolanacağı tam adres (İlçe, İl ve Posta Kodu dahil)"
+                    placeholder="Ürünün kargolanacağı tam adresiniz (Mahalle, Cadde/Sokak, Bina No, İlçe, İl)"
                   />
                 </div>
               </div>

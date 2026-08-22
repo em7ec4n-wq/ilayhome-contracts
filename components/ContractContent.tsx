@@ -154,12 +154,17 @@ export default function ContractContent({ contract, influencerInfo }: ContractCo
         <h2 className="text-base font-bold text-gray-900">12. Tarafların İmzaları</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="p-4 bg-purple-50/50 border border-purple-200 rounded-xl space-y-2">
-            <p className="text-xs font-semibold text-purple-900 uppercase tracking-wide">MARKA YETKİLİSİ</p>
-            <div className="h-14 flex items-center justify-center border-b border-purple-200 text-purple-700 italic font-serif text-base font-bold">
-              İlay Züccaciye (İlay Home) ✓
+            <p className="text-xs font-semibold text-purple-900 uppercase tracking-wide">MARKA YETKİLİSİ İMZASI</p>
+            <div className="h-20 flex items-center justify-center border-b border-purple-200 py-1">
+              <img 
+                src="/company-signature.png" 
+                alt="İlay Züccaciye İmza" 
+                className="max-h-full max-w-[180px] object-contain"
+              />
             </div>
             <div className="text-xs space-y-1 text-purple-900 pt-1">
               <p><strong>Firma:</strong> İlay Züccaciye / Antalya Kumluca</p>
+              <p><strong>Yetkili:</strong> Marka Yönetimi ✓</p>
               <p><strong>Tarih:</strong> {new Date().toLocaleDateString('tr-TR')}</p>
             </div>
           </div>

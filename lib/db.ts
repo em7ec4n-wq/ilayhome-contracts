@@ -196,7 +196,7 @@ export async function signContract(params: {
   instagram_username?: string;
   selected_product?: string;
   product_value?: number;
-  tc_no: string;
+  tc_no?: string;
   phone: string;
   email: string;
   address: string;

@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
       signature_data 
     } = body;
 
-    if (!contract_id || !full_name || !tc_no || !phone || !address || !signature_data) {
+    if (!contract_id || !full_name || !phone || !address || !signature_data) {
       return NextResponse.json({ error: 'Lütfen tüm zorunlu alanları doldurunuz.' }, { status: 400 });
     }
 
@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
       instagram_username,
       selected_product,
       product_value,
-      tc_no,
+      tc_no: tc_no || '',
       phone,
       email: email || '',
       address,

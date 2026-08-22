@@ -4,7 +4,7 @@ import { Contract } from '@/lib/types';
 export interface InfluencerFormData {
   fullName: string;
   instagramUsername: string;
-  tcNo: string;
+  tcNo?: string;
   phone: string;
   email: string;
   address: string;
@@ -58,7 +58,6 @@ export default function ContractContent({ contract, influencerInfo }: ContractCo
             <p className="font-bold text-brand-900 uppercase border-b border-gray-200 pb-1">INFLUENCER (İÇERİK ÜRETİCİ)</p>
             <p><strong>Adı Soyadı:</strong> {currentInfluencerName || <span className="text-gray-400 italic">(Doldurulacak)</span>}</p>
             <p><strong>Instagram:</strong> {influencerInfo?.instagramUsername ? (influencerInfo.instagramUsername.startsWith('@') ? influencerInfo.instagramUsername : `@${influencerInfo.instagramUsername}`) : <span className="text-gray-400 italic">(Doldurulacak)</span>}</p>
-            <p><strong>T.C. Kimlik No:</strong> {influencerInfo?.tcNo || <span className="text-gray-400 italic">(Doldurulacak)</span>}</p>
             <p><strong>Telefon:</strong> {influencerInfo?.phone || <span className="text-gray-400 italic">(Doldurulacak)</span>}</p>
             <p><strong>E-posta:</strong> {influencerInfo?.email || <span className="text-gray-400 italic">(Doldurulacak)</span>}</p>
             <p><strong>Teslimat Adresi:</strong> {influencerInfo?.address || <span className="text-gray-400 italic">(Doldurulacak)</span>}</p>

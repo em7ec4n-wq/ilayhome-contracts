@@ -32,7 +32,6 @@ export default function ContractPage() {
   // Form State
   const [fullName, setFullName] = useState('');
   const [instagramUsername, setInstagramUsername] = useState('');
-  const [tcNo, setTcNo] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [address, setAddress] = useState('');
@@ -78,7 +77,6 @@ export default function ContractPage() {
 
   const isStep1Valid = fullName.trim().length > 0 && 
     instagramUsername.trim().length > 0 && 
-    tcNo.replace(/\D/g, '').length === 11 && 
     phone.trim().length > 0 && 
     email.trim().length > 0 && 
     address.trim().length > 0 &&
@@ -106,7 +104,6 @@ export default function ContractPage() {
           instagram_username: instagramUsername,
           selected_product: selectedProduct,
           product_value: productValue,
-          tc_no: tcNo,
           phone,
           email,
           address,
@@ -281,25 +278,6 @@ export default function ContractPage() {
                   </div>
                 </div>
 
-                {/* TC Kimlik No */}
-                <div>
-                  <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1">
-                    T.C. Kimlik Numarası <span className="text-red-500">*</span>
-                  </label>
-                  <input 
-                    type="text" 
-                    required 
-                    maxLength={11}
-                    value={tcNo}
-                    onChange={e => setTcNo(e.target.value.replace(/\D/g, ''))}
-                    className="input-field w-full" 
-                    placeholder="11 haneli T.C. Kimlik numaranızı giriniz"
-                  />
-                  {tcNo.length > 0 && tcNo.length !== 11 && (
-                    <p className="text-xs text-amber-600 mt-1">11 haneli olmalıdır ({tcNo.length}/11)</p>
-                  )}
-                </div>
-
                 {/* Telefon */}
                 <div>
                   <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1">
@@ -384,7 +362,6 @@ export default function ContractPage() {
               influencerInfo={{
                 fullName,
                 instagramUsername,
-                tcNo,
                 phone,
                 email,
                 address,

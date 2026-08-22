@@ -355,7 +355,6 @@ export default function AdminDashboard() {
                     influencerInfo={{
                       fullName: selectedContract.signatures?.full_name || selectedContract.influencer_name || '',
                       instagramUsername: selectedContract.signatures?.instagram_username || '',
-                      tcNo: selectedContract.signatures?.tc_no || '',
                       phone: selectedContract.signatures?.phone || '',
                       email: selectedContract.signatures?.email || '',
                       address: selectedContract.signatures?.address || '',
@@ -403,11 +402,6 @@ export default function AdminDashboard() {
                         <strong className="text-purple-700 font-semibold text-base">
                           {selectedContract.signatures?.instagram_username ? `@${selectedContract.signatures.instagram_username.replace(/^@/, '')}` : '-'}
                         </strong>
-                      </div>
-
-                      <div>
-                        <span className="text-gray-500 block text-xs">T.C. Kimlik No:</span>
-                        <strong className="text-gray-900">{selectedContract.signatures?.tc_no || '-'}</strong>
                       </div>
 
                       <div>

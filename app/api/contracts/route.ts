@@ -39,6 +39,25 @@ export async function GET(req: NextRequest) {
     const id = searchParams.get('id')
 
     if (id) {
+      // Demo / Örnek sözleşme
+      if (id === 'ornek' || id === 'demo') {
+        const deadline = calculateDeliveryDeadline()
+        return NextResponse.json({
+          id: id,
+          influencer_name: 'Ayşe Yılmaz (@aysehome)',
+          product_detail: 'İlay Home Lüks Çift Kişilik Pamuk Nevresim Takımı & Banyo Havlu Seti',
+          product_value: 2450,
+          content_count: 1,
+          content_type: 'UGC Video (Doğal Deneyim & Kullanım)',
+          platform: 'Instagram Reels & TikTok',
+          notes: 'Ürün yarın kargoya verilecektir. Kargo takip no WhatsApp üzerinden iletilecektir.',
+          status: 'pending',
+          delivery_deadline: deadline,
+          created_at: new Date().toISOString(),
+          signatures: null
+        })
+      }
+
       // Fetch single contract with signature (public access)
       const { data, error } = await getSupabase()
         .from('contracts')

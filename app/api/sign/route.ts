@@ -12,6 +12,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
+    // Demo contract signing
+    if (contract_id === 'ornek' || contract_id === 'demo') {
+      return NextResponse.json({ 
+        success: true, 
+        contract: { 
+          id: contract_id,
+          influencer_name: full_name,
+          status: 'signed' 
+        } 
+      }, { status: 201 })
+    }
+
     // Check contract exists and is pending
     const { data: contract, error: contractError } = await getSupabase()
       .from('contracts')

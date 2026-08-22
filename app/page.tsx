@@ -33,6 +33,17 @@ export default function HomePage() {
           İlay Home ile yapacağınız barter ve UGC video iş birliklerinde sözleşmenizi tek tıkla inceleyebilir ve telefonunuzdan parmağınızla anında imzalayabilirsiniz.
         </p>
 
+        {/* Direct Start Button */}
+        <div className="pt-2">
+          <Link 
+            href="/sozlesme"
+            className="btn-primary inline-flex items-center justify-center gap-2 px-8 py-4 text-base sm:text-lg font-bold rounded-2xl shadow-xl hover:shadow-2xl hover:scale-105 transition-all text-white bg-brand-600 hover:bg-brand-700"
+          >
+            <span>Sözleşmeyi Başlat & İmzala</span>
+            <span>✍️</span>
+          </Link>
+        </div>
+
         {/* Info Card */}
         <div className="card max-w-lg mx-auto p-6 bg-white/90 backdrop-blur border border-gray-100 text-left space-y-4 shadow-sm">
           <div className="flex items-start gap-3">

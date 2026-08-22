@@ -68,10 +68,10 @@ export default function ContractContent({ contract, influencerInfo }: ContractCo
       {/* 2. Barter Kapsamındaki Ürün */}
       <section className="space-y-2">
         <h2 className="text-base font-bold text-gray-900">2. Barter Kapsamındaki Ürün</h2>
-        <p className="text-gray-700">Marka, influencer'a aşağıda detayları belirtilen ücretsiz ürünü sağlayacaktır:</p>
-        <div className="bg-gray-50 p-3 rounded-xl border border-gray-100 space-y-1.5 text-xs sm:text-sm">
-          <p><span className="text-gray-500 font-medium">Ürün Detayı:</span> <strong>{currentProductDetail}</strong></p>
-          <p><span className="text-gray-500 font-medium">Ürün Tahmini Perakende Değeri:</span> <strong>{currentProductValue} TL</strong></p>
+        <p className="text-gray-700">Marka, influencer'a aşağıda detayı belirtilen ücretsiz barter ürününü sağlayacaktır:</p>
+        <div className="bg-gray-50 p-3.5 rounded-xl border border-gray-100 space-y-1.5 text-xs sm:text-sm">
+          <p><span className="text-gray-500 font-medium">Seçilen Barter Ürünü:</span> <strong className="text-gray-900">{currentProductDetail}</strong></p>
+          <p><span className="text-gray-500 font-medium">Ürün Bedeli Esası:</span> <span className="text-gray-700">İlay Home resmi web sitesindeki (<strong>www.ilayhome.com</strong>) güncel perakende satış fiyatı geçerlidir.</span></p>
         </div>
       </section>
 
@@ -109,7 +109,7 @@ export default function ContractContent({ contract, influencerInfo }: ContractCo
       <section className="space-y-2">
         <h2 className="text-base font-bold text-gray-900">6. Gecikme ve Yaptırımlar</h2>
         <p className="text-gray-700 leading-relaxed">
-          Influencer, içerik tesliminde gecikme yaşaması veya belirlenen 7 iş günlük azami süre içinde videoyu teslim etmemesi halinde marka, gönderilen ürünün perakende satış bedelini ({currentProductValue} TL) influencer'dan nakden talep ve tahsil etme hakkına sahiptir.
+          Influencer, içerik tesliminde gecikme yaşaması veya belirlenen 7 iş günlük azami süre içinde videoyu teslim etmemesi halinde marka, gönderilen seçili ürünün ({currentProductDetail}) markaya ait resmi web sitesindeki (<strong>www.ilayhome.com</strong>) güncel perakende satış bedelini influencer'dan nakden talep ve tahsil etme hakkına sahiptir.
         </p>
       </section>
 

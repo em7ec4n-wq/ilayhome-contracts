@@ -13,9 +13,9 @@ const SignaturePad = dynamic(() => import('@/components/SignaturePad'), {
 });
 
 const DEFAULT_PRODUCT_OPTIONS = [
-  { id: 'cift_kisilik', name: 'Çift Kişilik Uyku Seti', value: 2450, icon: '🛏️', desc: 'Lüks Pamuk Çift Kişilik Nevresim & Uyku Seti' },
-  { id: 'tek_kisilik', name: 'Tek Kişilik Uyku Seti', value: 1850, icon: '🛏️', desc: 'Lüks Pamuk Tek Kişilik Nevresim & Uyku Seti' },
-  { id: 'klimati_yastik', name: 'Klimalı Yastık (2 Adet)', value: 1250, icon: '❄️', desc: 'Özel Ortopedik Klimalı Soğutucu Etkili Yastık' },
+  { id: 'cift_kisilik', name: 'Çift Kişilik Uyku Seti', icon: '🛏️', desc: 'Lüks Pamuk Çift Kişilik Nevresim & Uyku Seti' },
+  { id: 'tek_kisilik', name: 'Tek Kişilik Uyku Seti', icon: '🛏️', desc: 'Lüks Pamuk Tek Kişilik Nevresim & Uyku Seti' },
+  { id: 'klimali_yastik', name: 'Klimalı Yastık', icon: '❄️', desc: 'Özel Ortopedik Klimalı Soğutucu Etkili Yastık' },
 ];
 
 export default function ContractPage() {
@@ -57,14 +57,11 @@ export default function ContractPage() {
           setFullName(data.influencer_name);
         }
         if (data.product_detail) {
-          // If match in options, select it, otherwise set as custom
           const found = DEFAULT_PRODUCT_OPTIONS.find(p => p.name.toLowerCase() === data.product_detail.toLowerCase());
           if (found) {
             setSelectedProduct(found.name);
-            setProductValue(found.value);
           } else {
             setSelectedProduct(data.product_detail);
-            setProductValue(data.product_value || 2450);
           }
         }
       } catch (err: any) {
@@ -219,10 +216,10 @@ export default function ContractPage() {
                     return (
                       <label 
                         key={prod.id}
-                        onClick={() => handleProductChange(prod.name, prod.value)}
+                        onClick={() => setSelectedProduct(prod.name)}
                         className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all flex items-center justify-between ${
                           isSelected 
-                            ? 'border-brand-500 bg-brand-50/50 shadow-sm' 
+                            ? 'border-brand-500 bg-brand-50/50 shadow-sm ring-1 ring-brand-400/30' 
                             : 'border-gray-200 hover:border-gray-300 bg-white'
                         }`}
                       >
@@ -231,7 +228,7 @@ export default function ContractPage() {
                             type="radio" 
                             name="barter_product" 
                             checked={isSelected}
-                            onChange={() => handleProductChange(prod.name, prod.value)}
+                            onChange={() => setSelectedProduct(prod.name)}
                             className="w-4 h-4 text-brand-600 border-gray-300 focus:ring-brand-500"
                           />
                           <div>
@@ -242,8 +239,10 @@ export default function ContractPage() {
                             <p className="text-xs text-gray-500">{prod.desc}</p>
                           </div>
                         </div>
-                        <span className="text-xs font-bold text-brand-800 bg-brand-100/70 px-2.5 py-1 rounded-lg shrink-0">
-                          {prod.value} TL
+                        <span className={`text-xs font-semibold px-2.5 py-1 rounded-lg shrink-0 ${
+                          isSelected ? 'bg-brand-600 text-white font-bold' : 'text-gray-400 bg-gray-100'
+                        }`}>
+                          {isSelected ? 'Seçildi ✓' : 'Seç'}
                         </span>
                       </label>
                     );

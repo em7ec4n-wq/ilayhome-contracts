@@ -16,6 +16,7 @@ export interface Signature {
   id: string;
   contract_id: string;
   full_name: string;
+  instagram_username?: string;
   tc_no: string;
   phone: string;
   email: string;

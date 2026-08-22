@@ -15,7 +15,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     const pwd = sessionStorage.getItem("admin_pwd");
     if (!pwd) {
-      router.push("/");
+      router.push("/admin/login");
       return;
     }
     fetchContracts(pwd);
@@ -36,7 +36,7 @@ export default function AdminDashboard() {
         setDbError("");
       } else if (res.status === 401) {
         sessionStorage.removeItem("admin_pwd");
-        router.push("/");
+        router.push("/admin/login");
       } else {
         const errData = await res.json().catch(() => ({}));
         setDbError(errData.error || "Veritabanı bağlantısı bekleniyor");
@@ -51,7 +51,7 @@ export default function AdminDashboard() {
 
   const handleLogout = () => {
     sessionStorage.removeItem("admin_pwd");
-    router.push("/");
+    router.push("/admin/login");
   };
 
   const copyLink = (id: string) => {

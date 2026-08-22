@@ -23,7 +23,7 @@ export default function CreateContractPage() {
   useEffect(() => {
     const password = sessionStorage.getItem("admin_pwd");
     if (!password) {
-      router.push("/");
+      router.push("/admin/login");
     } else {
       setPwd(password);
     }
